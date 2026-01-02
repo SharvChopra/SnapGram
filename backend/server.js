@@ -9,12 +9,18 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
     cors: {
-        origin: "http://localhost:5173", // Vite default port
+        origin: process.env.FRONTEND_URL,
         methods: ["GET", "POST"]
     }
 });
 
-app.use(cors());
+const cookieParser = require('cookie-parser');
+
+app.use(cors({
+    origin: process.env.FRONTEND_URL,
+    credentials: true // Allow cookies
+}));
+app.use(cookieParser());
 app.use(express.json());
 
 // Database connection
@@ -32,8 +38,18 @@ const connectDB = async () => {
 
 connectDB();
 
+// Socket.io Middleware to attach io to req
+app.use((req, res, next) => {
+    req.io = io;
+    next();
+});
+
 app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/users', require('./routes/userRoutes'));
+app.use('/api/posts', require('./routes/postRoutes'));
+app.use('/api/stories', require('./routes/storyRoutes'));
+app.use('/api/reels', require('./routes/reelRoutes'));
+app.use('/api/messages', require('./routes/messageRoutes'));
 
 // Basic Route
 app.get('/', (req, res) => {
@@ -43,6 +59,14 @@ app.get('/', (req, res) => {
 // Socket.io
 io.on('connection', (socket) => {
     console.log('User connected:', socket.id);
+
+    // Join a room named after the user ID to receive direct messages
+    socket.on('join_room', (userId) => {
+        if (userId) {
+            socket.join(userId);
+            console.log(`User ${userId} joined room ${userId}`);
+        }
+    });
 
     socket.on('disconnect', () => {
         console.log('User disconnected:', socket.id);

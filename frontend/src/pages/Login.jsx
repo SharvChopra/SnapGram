@@ -1,6 +1,9 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { User, Lock, ArrowRight } from 'lucide-react';
+import ModernInput from '../components/ModernInput';
+import AuthLayout from '../Layouts/AuthLayout';
 
 const Login = () => {
     const [identifier, setIdentifier] = useState('');
@@ -8,71 +11,88 @@ const Login = () => {
     const [error, setError] = useState('');
     const { login } = useAuth();
     const navigate = useNavigate();
+    const [loading, setLoading] = useState(false);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError('');
+        setLoading(true);
         try {
             await login(identifier, password);
             navigate('/');
         } catch (err) {
             setError(err.response?.data?.message || 'Login failed');
+        } finally {
+            setLoading(false);
         }
     };
 
     return (
-        <div className="flex justify-center items-center min-h-screen bg-gray-50">
-            <div className="w-full max-w-sm">
-                <div className="bg-white border border-gray-300 rounded-sm p-10 mb-4">
-                    <h1 className="text-4xl font-serif text-center mb-8" style={{ fontFamily: '"Instagram Sans", sans-serif' }}>SnapGram</h1>
-
-                    {error && <p className="text-red-500 text-sm text-center mb-4">{error}</p>}
-
-                    <form onSubmit={handleSubmit} className="flex flex-col gap-2">
-                        <input
-                            type="text"
-                            placeholder="Phone number, username, or email"
-                            className="bg-gray-50 border border-gray-300 text-gray-900 text-xs rounded-sm focus:ring-gray-400 focus:border-gray-400 block w-full p-2.5 outline-none"
-                            value={identifier}
-                            onChange={(e) => setIdentifier(e.target.value)}
-                            required
-                        />
-                        <input
-                            type="password"
-                            placeholder="Password"
-                            className="bg-gray-50 border border-gray-300 text-gray-900 text-xs rounded-sm focus:ring-gray-400 focus:border-gray-400 block w-full p-2.5 outline-none mb-2"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            required
-                        />
-                        <button
-                            type="submit"
-                            className="text-white bg-blue-500 hover:bg-blue-600 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-1.5 focus:outline-none font-bold"
-                        >
-                            Log in
-                        </button>
-                    </form>
-
-                    <div className="flex items-center my-4">
-                        <div className="flex-1 border-t border-gray-300"></div>
-                        <span className="px-4 text-gray-500 text-xs font-semibold">OR</span>
-                        <div className="flex-1 border-t border-gray-300"></div>
-                    </div>
-                    <div className="text-center">
-                        <a href="#" className="text-blue-900 font-semibold text-sm">Log in with Facebook</a>
-                    </div>
-                    <div className="text-center mt-3">
-                        <a href="#" className="text-xs text-blue-900">Forgot password?</a>
-                    </div>
-                </div>
-
-                <div className="bg-white border border-gray-300 rounded-sm p-5 text-center">
-                    <p className="text-sm">
-                        Don't have an account? <Link to="/signup" className="text-blue-500 font-semibold">Sign up</Link>
-                    </p>
+        <AuthLayout title="Login" subtitle="Welcome back!">
+            {/* Header Nav (No Arrow) */}
+            <div className="absolute top-8 right-8 lg:right-24 z-20">
+                <div className="text-sm font-medium text-gray-500">
+                    Not a member? <Link to="/signup" className="text-blue-600 hover:text-blue-700 font-bold ml-1">Sign up</Link>
                 </div>
             </div>
-        </div>
+
+            <div className="mt-20 w-full max-w-md mx-auto">
+                <h1 className="text-4xl font-bold text-gray-900 mb-2 font-serif" style={{ fontFamily: '"Instagram Sans", sans-serif' }}>Log In</h1>
+                <p className="text-gray-500 mb-12">Welcome back to SnapGram!</p>
+
+                {error && <div className="bg-red-50 text-red-500 px-4 py-2 rounded-lg mb-6 text-sm flex items-center gap-2">⚠️ {error}</div>}
+
+                <form onSubmit={handleSubmit}>
+                    <ModernInput
+                        icon={User}
+                        type="text"
+                        name="identifier"
+                        placeholder="Username or Email"
+                        value={identifier}
+                        onChange={(e) => setIdentifier(e.target.value)}
+                    />
+
+                    <ModernInput
+                        icon={Lock}
+                        type="password"
+                        name="password"
+                        placeholder="Password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                    />
+
+                    <div className="flex justify-end mb-8">
+                        <Link to="/forgot-password" className="text-sm text-gray-500 hover:text-blue-600 font-medium">Forgot Password?</Link>
+                    </div>
+
+                    <div className="flex items-center justify-between mt-8">
+                        <div className="flex items-center gap-4">
+                            <span className="text-gray-400 text-sm">Or login with</span>
+                            <div className="flex gap-2">
+                                <a
+                                    href="https://www.facebook.com"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center hover:bg-blue-50 hover:border-blue-200 transition-all cursor-pointer"
+                                >
+                                    <span className="text-blue-600 font-bold">f</span>
+                                </a>
+                            </div>
+                        </div>
+
+                        <button
+                            type="submit"
+                            className={`flex items-center gap-2 px-8 py-3 rounded-full text-white font-medium transition-all shadow-lg hover:shadow-xl active:scale-95
+                                ${loading ? 'bg-blue-400 cursor-wait' : 'bg-blue-600 hover:bg-blue-700'}
+                            `}
+                        >
+                            {loading ? 'Logging In...' : 'Log In'}
+                            {!loading && <ArrowRight className="w-4 h-4" />}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </AuthLayout>
     );
 };
 

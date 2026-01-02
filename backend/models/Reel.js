@@ -1,31 +1,31 @@
 const mongoose = require('mongoose');
 
-const postSchema = new mongoose.Schema({
+const reelSchema = new mongoose.Schema({
     user: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
         required: true
     },
-    image: {
+    video: {
         type: String, // Cloudinary URL
         required: true
     },
     caption: {
         type: String,
-        trim: true,
-        maxlength: 2200
-    },
-    location: {
-        type: String
+        default: ''
     },
     likes: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User'
     }],
-    hashtags: {
-        type: [String],
-        index: true
+    comments: [{ // Basic comment reference, can be expanded later
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Comment'
+    }],
+    createdAt: {
+        type: Date,
+        default: Date.now
     }
-}, { timestamps: true });
+});
 
-module.exports = mongoose.model('Post', postSchema);
+module.exports = mongoose.model('Reel', reelSchema);

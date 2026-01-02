@@ -1,26 +1,28 @@
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate, Outlet } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
 import Profile from './pages/Profile';
+import Explore from './pages/Explore';
+import Reels from './pages/Reels';
+import Chat from './pages/Chat';
+import Search from './pages/Search';
+import Notifications from './pages/Notifications';
+import Layout from './components/Layout';
+import { SocketProvider } from './context/SocketContext';
 
-const PrivateRoute = ({ children }) => {
+const PrivateRoute = () => {
   const { user, loading } = useAuth();
 
   if (loading) return <div>Loading...</div>;
-  if (!user) return <Navigate to="/login" />;
-
-  return children;
+  return user ? (
+    <SocketProvider>
+      <Outlet />
+    </SocketProvider>
+  ) : <Navigate to="/login" />;
 };
 
-const Home = () => {
-  return (
-    <div className="flex justify-center items-center h-screen">
-      <h1 className="text-2xl">Welcome to SnapGram Feed!</h1>
-    </div>
-  )
-}
-
+import Home from './pages/Home';
 
 function App() {
   return (
@@ -28,15 +30,19 @@ function App() {
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
-        <Route path="/p/:username" element={<Profile />} />
-        <Route
-          path="/"
-          element={
-            <PrivateRoute>
-              <Home />
-            </PrivateRoute>
-          }
-        />
+
+        {/* Protected Routes wrapped in Layout */}
+        <Route element={<PrivateRoute />}>
+          <Route element={<Layout />}>
+            <Route path="/" element={<Home />} />
+            <Route path="/search" element={<Search />} />
+            <Route path="/explore" element={<Explore />} />
+            <Route path="/reels" element={<Reels />} />
+            <Route path="/messages" element={<Chat />} />
+            <Route path="/p/:username" element={<Profile />} />
+            <Route path="/notifications" element={<Notifications />} />
+          </Route>
+        </Route>
       </Routes>
     </AuthProvider>
   );

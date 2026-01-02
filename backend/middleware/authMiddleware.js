@@ -1,5 +1,5 @@
-import { verify } from 'jsonwebtoken';
-import { findById } from '../models/User';
+const jwt = require('jsonwebtoken');
+const User = require('../models/User');
 
 const protect = async (req, res, next) => {
     let token;
@@ -13,19 +13,17 @@ const protect = async (req, res, next) => {
             token = req.headers.authorization.split(' ')[1];
 
             // Verify token
-            const decoded = verify(token, process.env.JWT_SECRET);
+            const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
             // Get user from the token
-            req.user = await findById(decoded.id).select('-password');
+            req.user = await User.findById(decoded.id).select('-password');
 
             if (!req.user) {
                 return res.status(401).json({ message: 'Not authorized, user not found' });
             }
 
-            // Check if token version matches
-            if (decoded.tokenVersion !== undefined && decoded.tokenVersion !== req.user.tokenVersion) {
-                return res.status(401).json({ message: 'Not authorized, token invalid' });
-            }
+            // Note: We don't check tokenVersion here for Access Tokens to keep them stateless & short-lived.
+            // Token version is checked during Refresh Token rotation.
 
             next();
         } catch (error) {
@@ -39,4 +37,4 @@ const protect = async (req, res, next) => {
     }
 };
 
-export default { protect };
+module.exports = { protect };

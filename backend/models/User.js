@@ -1,6 +1,6 @@
-import { Schema, model } from 'mongoose';
+const mongoose = require('mongoose');
 
-const userSchema = new Schema({
+const userSchema = new mongoose.Schema({
     username: {
         type: String,
         required: true,
@@ -28,12 +28,16 @@ const userSchema = new Schema({
         type: String,
         default: ""
     },
+    links: [{
+        title: String,
+        url: String
+    }],
     followers: [{
-        type: Schema.Types.ObjectId,
+        type: mongoose.Schema.Types.ObjectId,
         ref: 'User'
     }],
     following: [{
-        type: Schema.Types.ObjectId,
+        type: mongoose.Schema.Types.ObjectId,
         ref: 'User'
     }],
     isPrivate: {
@@ -41,7 +45,11 @@ const userSchema = new Schema({
         default: false
     },
     blockedUsers: [{
-        type: Schema.Types.ObjectId,
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User'
+    }],
+    requests: [{
+        type: mongoose.Schema.Types.ObjectId,
         ref: 'User'
     }],
     tokenVersion: {
@@ -52,4 +60,4 @@ const userSchema = new Schema({
     timestamps: true
 });
 
-export default model('User', userSchema);
+module.exports = mongoose.model('User', userSchema);
